@@ -15,7 +15,9 @@ Then build:
 colcon build --symlink-install
 ```
 (Might need to install control-msgs using: 
+```bash
 sudo apt install ros-foxy-control-msgs
+```
 or manullay by cloning repository: https://github.com/ros-controls/control_msgs/tree/foxy-devel 
 
 )
