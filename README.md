@@ -1,5 +1,8 @@
-# Sensorized Needle Robot Project
+# NeedleGuide
+
 Shared repository for the sensorized needle robot collaboration between BWH and JHU.
+This repository controls the linear guides and the measurement of depth and orientation will be implemented.
+Please also refer to instructions in the Readme located under stage_control folder.
 
 ## Installation
 Clone repository into the src folder of a colcon workspace, and then run rosdep to install dependencies:
@@ -11,7 +14,11 @@ Then build:
 ```bash
 colcon build --symlink-install
 ```
+(Might need to install control-msgs using: 
+sudo apt install ros-foxy-control-msgs
+or manullay by cloning repository: https://github.com/ros-controls/control_msgs/tree/foxy-devel 
 
+)
 ## Usage
 Launch the adaptive_guide_launch.py file
 ```bash
@@ -74,5 +81,4 @@ The following topics can be subscribed to in order to monitor the insertion dept
  - */virtual_stage/joint_states/theta*: A std_msgs/msg/Float64 topic for the rotation of the needle about the y-axis in radians.
 
 ## TODO
- - Implement virtual sensors (IMU, Linear Potentiometer)
- - Implement queue for commands sent to NSC-2AL to improve reliability
+ - Implement virtual sensors (Linear Potentiometer, axial orientation of the needle)
