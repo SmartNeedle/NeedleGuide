@@ -34,13 +34,14 @@ ament_target_dependencies(stage_control_node
   "geometry_msgs"
   "stage_control_interfaces"
   "control_msgs"
+  "std_msgs"
   )
 
 add_executable(stage_hardware_node src/stage_hardware_node.cpp)
-ament_target_dependencies(stage_hardware_node rclcpp stage_control_interfaces)
+ament_target_dependencies(stage_hardware_node rclcpp stage_control_interfaces std_msgs)
 target_link_libraries(stage_hardware_node usb-1.0)
 
-add_executable(stage_emulated_node src/stage_emulated_node.cpp)
+add_executable(stage_emulated_node src/stage_emulated_node.cpp std_msgs)
 ament_target_dependencies(stage_emulated_node rclcpp)
 
 add_executable(stage_virtual_node src/stage_virtual_node.cpp)
