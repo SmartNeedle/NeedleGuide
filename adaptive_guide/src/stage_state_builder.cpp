@@ -42,7 +42,7 @@ private:
         message.pose.set__position(position);
         message.pose.set__orientation(orientation);
         message.header.set__stamp(this->get_clock()->now());
-
+        RCLCPP_INFO(this->get_logger(), "Publishing x: %f, y: %f, z: %f, theta: %f", message.pose.position.x,message.pose.position.y,message.pose.position.z,message.pose.orientation.x);
         pose_publisher->publish(message);
     }
 
