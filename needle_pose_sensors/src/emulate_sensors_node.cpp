@@ -7,6 +7,19 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "std_msgs/msg/float64.hpp"
 
+
+#include <iostream>
+#include <fstream>
+#include "std_msgs/msg/string.hpp"
+#include <stdio.h>
+#include <sstream>
+#include <iomanip>
+
+using namespace std::chrono_literals;
+using std::cout; using std::cerr;
+using std::endl; using std::string;
+using std::ifstream;
+
 using namespace std::chrono_literals;
 
 /**
@@ -14,6 +27,7 @@ using namespace std::chrono_literals;
  * real sensors have been fully integrated. Also exposes topics
  * to modify virtual needle pose.
  **/
+ 
 class EmulateSensorsNode : public rclcpp::Node
 {
 public:
@@ -25,65 +39,108 @@ public:
     {
         // Needle pose publisher
         pose_publisher = this->create_publisher<PoseStamped>("needle/state/pose", 10);
-        timer_ = this->create_wall_timer(
+        pose_timer_ = this->create_wall_timer(
             50ms, std::bind(&EmulateSensorsNode::timer_callback, this));
 
         RCLCPP_INFO(this->get_logger(), "Needle sensor emulators ready.");
 
         // Needle control subscribers
-        y_subscriber = this->create_subscription<Float64>(
-            "needle/emulated/y",
+        yAndTheta_subscriber = this->create_subscription<std_msgs::msg::String>(
+            "needle/emulated/yAndTheta",
             10,
-            std::bind(&EmulateSensorsNode::y_command_callback, this, std::placeholders::_1));
+            std::bind(&EmulateSensorsNode::yAndTheta_sub_callback, this, std::placeholders::_1));
 
-        theta_subscriber = this->create_subscription<Float64>(
-            "needle/emulated/theta",
-            10,
-            std::bind(&EmulateSensorsNode::theta_command_callback, this, std::placeholders::_1));
-
-        
+	// Needle depth and rotation publisher
+        yAndTheta_publisher = this->create_publisher<std_msgs::msg::String>("needle/emulated/yAndTheta", 10);
+        timer_ = this->create_wall_timer(
+            50ms, std::bind(&EmulateSensorsNode::yAndTheta_pub_callback, this));
+            
         RCLCPP_INFO(this->get_logger(), "Needle control emulators ready.");
     }
 
 private:
     void timer_callback()
-    {
+    { 	
         auto message = PoseStamped();
         auto position = geometry_msgs::msg::Point();
         auto orientation = geometry_msgs::msg::Quaternion();
 
-        position.set__x(0);
-        position.set__y(y);
-        position.set__z(0);
-
-        orientation.set__x(0);
-        orientation.set__y(sin(theta / 2));
-        orientation.set__z(0);
-        orientation.set__w(cos(theta / 2));
+        position.set__y(y); // corresponds to depth 
+        orientation.set__x(theta); // corresponds to theta
 
         message.pose.set__position(position);
         message.pose.set__orientation(orientation);
         message.header.set__stamp(this->get_clock()->now());
-
         pose_publisher->publish(message);
     }
 
-    void y_command_callback(const Float64::SharedPtr msg) 
+    void yAndTheta_sub_callback(const std_msgs::msg::String::SharedPtr msg) 
     {
-        y = msg->data;
+    	yAndTheta = msg->data;
+    	// Retrieve depth and rotation separated by a semicolon
+    	size_t pos = yAndTheta.rfind(";"); 
+	std::string depth_value = yAndTheta.substr(0, pos);
+	std::string rotation_value = yAndTheta.substr(pos + 1);
+	std::cout << depth_value << std::endl;
+	std::cout << rotation_value << std::endl;
+	//RCLCPP_INFO(this->get_logger(), "Measured values are: depth: %s and rotation: %s", 	depth_value.c_str(),rotation_value.c_str());
+	// convert string to float
+    	y = std::stof(depth_value);	
+    	theta = std::stof(rotation_value);	
     }
 
-    void theta_command_callback(const Float64::SharedPtr msg)
+    void yAndTheta_pub_callback()
     {
-        theta = msg->data;
-    }
+    	auto message = std_msgs::msg::String();
+	const std::string filename = "/home/snr/new_ws/Test.log";
+  	std::ifstream fs;
+  	fs.open(filename.c_str(), std::fstream::in);
+  	if(fs.is_open())
+  	{
+    		//Got to the last character before EOF
+    		fs.seekg(-1, std::ios_base::end);
+    		if(fs.peek() == '\n')
+    		{
+      			//Start searching for \n occurrences
+      			fs.seekg(-1, std::ios_base::cur);
+     			int i = fs.tellg();
+      			for(i;i > 0; i--)
+      			{
+        			if(fs.peek() == '\n')
+        			{
+          				//Found
+          				fs.get();
+          				break;
+        			}	
+        			//Move one character back
+        			fs.seekg(i, std::ios_base::beg);
+      			}
+      		}
+      		std::string lastline;
+    		getline(fs, lastline);
+    		std::cout << lastline << std::endl;
+    		
+		
+		message.data = lastline;
+		//RCLCPP_INFO(this->get_logger(), "Publishing depth;rotation value: %s", 		   message.data.c_str());
+		yAndTheta_publisher->publish(message);
 
+	}
+
+    	else
+  	{
+  	  	std::cout << "Could not find end line character" << std::endl;
+  	}
+
+    }
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::TimerBase::SharedPtr pose_timer_;
     rclcpp::Publisher<PoseStamped>::SharedPtr pose_publisher;
-    rclcpp::Subscription<Float64>::SharedPtr y_subscriber;
-    rclcpp::Subscription<Float64>::SharedPtr theta_subscriber;
-    double y;
-    double theta;
+    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr yAndTheta_subscriber;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr yAndTheta_publisher;
+    std::string yAndTheta;
+    float y;
+    float theta;
 };
 
 int main(int argc, char *argv[])
