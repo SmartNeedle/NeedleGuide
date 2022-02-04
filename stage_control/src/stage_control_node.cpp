@@ -199,15 +199,11 @@ namespace stage_control
         {
             auto message = geometry_msgs::msg::PoseStamped();
             auto position = geometry_msgs::msg::Point();
-            auto orientation = geometry_msgs::msg::Quaternion();
-
+            
             position.set__x(this->current_x);
-            position.set__y(0);
             position.set__z(this->current_z);
-            orientation.set__w(1);
 
             message.pose.set__position(position);
-            message.pose.set__orientation(orientation);
             message.header.set__stamp(this->get_clock()->now());
 
             this->pose_publisher_->publish(message);
