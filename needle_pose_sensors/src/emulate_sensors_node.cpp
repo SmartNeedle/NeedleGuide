@@ -92,7 +92,7 @@ private:
     void yAndTheta_pub_callback()
     {
     	auto message = std_msgs::msg::String();
-	const std::string filename = "/home/snr/new_ws/Test.log";
+	const std::string filename = "/home/snr/new_ws/src/NeedleGuide/Test.log";
   	std::ifstream fs;
   	fs.open(filename.c_str(), std::fstream::in);
   	if(fs.is_open())
@@ -129,7 +129,7 @@ private:
 
     	else
   	{
-  	  	std::cout << "Could not find end line character" << std::endl;
+  	  	std::cout << "Could open file" << std::endl;
   	}
 
     }
