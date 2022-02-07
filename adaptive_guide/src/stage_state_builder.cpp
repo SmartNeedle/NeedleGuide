@@ -16,6 +16,12 @@ public:
     StageStateBuilderNode()
         : Node("stage_state_builder_node")
     {
+
+       // Get sim level
+      // this->declare_parameter<int>("sim_level", 0);
+       //this->get_parameter("sim_level", sim_level);
+       //RCLCPP_INFO(this->get_logger(), "Starting stage state builder node with simulation level %i.", sim_level);
+            
         // Needle pose publisher
         pose_publisher = this->create_publisher<PoseStamped>("stage/state/needle_pose", 10);
         timer_ = this->create_wall_timer(
@@ -36,6 +42,7 @@ public:
     }
 
 private:
+    //int sim_level;
     void timer_callback()
     {
         auto message = PoseStamped();

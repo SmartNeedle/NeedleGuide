@@ -45,6 +45,10 @@ public:
     EmulateSensorsNode()
         : Node("emulate_sensors_node")
     {
+    	// Get sim level
+   	//this->declare_parameter<int>("sim_level", 0);
+       //this->get_parameter("sim_level", sim_level);
+       //RCLCPP_INFO(this->get_logger(), "Starting stage state builder node with simulation level %i.", sim_level);
         // Needle pose publisher
         pose_publisher = this->create_publisher<PoseStamped>("needle/state/pose", 10);
         pose_timer_ = this->create_wall_timer(
@@ -71,6 +75,7 @@ public:
     }
 
 private:
+    //int sim_level;
     void timer_callback()
     { 	
         auto message = PoseStamped();
@@ -210,32 +215,39 @@ private:
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    //read_sample_values();
-    std::cout << "Reading sample values" << std::endl;
     
-    const std::string filename = "/home/snr/new_ws/src/NeedleGuide/SampleSensorsValues.log";
-    std::ifstream fs;
-    fs.open(filename.c_str(), std::fstream::in);
-    std::string temp_string;
+    
+    //if (sim_level == 0 || sim_level == 1)
+    //{
+    	//read_sample_values();
+    	std::cout << "Reading sample values" << std::endl;
+    	const std::string filename = "/home/snr/new_ws/src/NeedleGuide/Experiment_values.log";
+    	std::ifstream fs;
+    	fs.open(filename.c_str(), std::fstream::in);
+    	std::string temp_string;
   	
-    if(fs.is_open())
-    {
-  		
-  	while (std::getline(fs, temp_string))
+    	if(fs.is_open())
     	{
-        	if(temp_string.size() > 0)
-        	{
-            		vecOfStr.push_back(temp_string);
-            		//std::cout << temp_string << std::endl;
-		} 
-    	}
+  		
+  		while (std::getline(fs, temp_string))
+    		{
+        		if(temp_string.size() > 0)
+        		{	
+            			vecOfStr.push_back(temp_string);
+            			//std::cout << temp_string << std::endl;
+			} 
+    		}
    
-    }
+    	}	
 
-    else
-    {
-  	  std::cout << "Could open file" << std::endl;
-    }
+    	else
+    	{
+  	  	std::cout << "Could open file" << std::endl;
+    	}
+    //}
+    
+    
+    
     rclcpp::spin(std::make_shared<EmulateSensorsNode>());
     rclcpp::shutdown();
     return 0;
