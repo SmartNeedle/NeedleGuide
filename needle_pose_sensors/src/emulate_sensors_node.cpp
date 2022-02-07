@@ -143,7 +143,7 @@ private:
     	auto message = std_msgs::msg::String();
 	std::string lastline;
 	lastline = vecOfStr[idx];
-        std::cout << lastline << std::endl;
+        //std::cout << lastline << std::endl;
         message.data = lastline;
 	//RCLCPP_INFO(this->get_logger(), "Publishing depth;rotation value: %s", 		   message.data.c_str());
 	yAndTheta_publisher->publish(message);  
