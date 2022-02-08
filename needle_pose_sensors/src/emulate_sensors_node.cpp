@@ -60,7 +60,7 @@ public:
         
         std::vector<std::string> vecOfStr;
 
-        // Needle control subscribers
+ /*       // Needle control subscribers
         yAndTheta_subscriber = this->create_subscription<std_msgs::msg::String>(
             "needle/emulated/yAndTheta",
             10,
@@ -70,7 +70,7 @@ public:
         yAndTheta_publisher = this->create_publisher<std_msgs::msg::String>("needle/emulated/yAndTheta", 10);
         timer_ = this->create_wall_timer(
             50ms, std::bind(&EmulateSensorsNode::yAndTheta_pub_callback, this));
-            
+            */
         RCLCPP_INFO(this->get_logger(), "Needle control emulators ready.");
     }
 
@@ -81,7 +81,25 @@ private:
         auto message = PoseStamped();
         auto position = geometry_msgs::msg::Point();
         auto orientation = geometry_msgs::msg::Quaternion();
-
+	
+	
+	std::string yAndTheta;
+	yAndTheta = vecOfStr[idx];
+        //std::cout << lastline << std::endl;
+	idx++;
+	
+    	// Retrieve depth and rotation separated by a semicolon
+    	size_t pos = yAndTheta.rfind(";"); 
+	std::string depth_value = yAndTheta.substr(0, pos);
+	std::string rotation_value = yAndTheta.substr(pos + 1);
+	//std::cout << depth_value << std::endl;
+	//std::cout << rotation_value << std::endl;
+	
+	// convert string to float
+    	y = std::stod(depth_value);	
+    	theta = std::stod(rotation_value);	
+	//std::cout << theta << std::endl;
+	
         position.set__y(y); // corresponds to depth 
         orientation.set__x(theta); // corresponds to theta
 	orientation.set__y(0); // Not used
@@ -93,7 +111,7 @@ private:
         pose_publisher->publish(message);
     }
 
-    void yAndTheta_sub_callback(const std_msgs::msg::String::SharedPtr msg) 
+  /*  void yAndTheta_sub_callback(const std_msgs::msg::String::SharedPtr msg) 
     {
     	yAndTheta = msg->data;
     	// Retrieve depth and rotation separated by a semicolon
@@ -101,12 +119,12 @@ private:
 	std::string depth_value = yAndTheta.substr(0, pos);
 	std::string rotation_value = yAndTheta.substr(pos + 1);
 	//std::cout << depth_value << std::endl;
-	//std::cout << rotation_value << std::endl;
+	std::cout << rotation_value << std::endl;
 	//RCLCPP_INFO(this->get_logger(), "Measured values are: depth: %s and rotation: %s", 	depth_value.c_str(),rotation_value.c_str());
 	// convert string to float
     	y = std::stof(depth_value);	
     	theta = std::stof(rotation_value);	
-    }
+    }*/
     
     
     
@@ -138,7 +156,7 @@ private:
   	  	std::cout << "Could open file" << std::endl;
   	}
     }
-    
+   /* 
     // For simulation
     void yAndTheta_pub_callback()
     {
@@ -151,9 +169,10 @@ private:
         //std::cout << lastline << std::endl;
         message.data = lastline;
 	//RCLCPP_INFO(this->get_logger(), "Publishing depth;rotation value: %s", 		   message.data.c_str());
+	
 	yAndTheta_publisher->publish(message);  
 	idx++;
-    }
+    }*/
     
     /*
     
@@ -205,11 +224,11 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::TimerBase::SharedPtr pose_timer_;
     rclcpp::Publisher<PoseStamped>::SharedPtr pose_publisher;
-    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr yAndTheta_subscriber;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr yAndTheta_publisher;
-    std::string yAndTheta;
-    float y;
-    float theta;
+    //rclcpp::Subscription<std_msgs::msg::String>::SharedPtr yAndTheta_subscriber;
+    //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr yAndTheta_publisher;
+    //std::string yAndTheta;
+    double y;
+    double theta;
 };
 
 int main(int argc, char *argv[])
