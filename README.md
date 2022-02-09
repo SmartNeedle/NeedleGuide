@@ -14,13 +14,12 @@ Then build:
 ```bash
 colcon build --symlink-install
 ```
-(Might need to install control-msgs using: 
+You might need to install control-msgs using: 
 ```bash
 sudo apt install ros-foxy-control-msgs
 ```
-or manullay by cloning repository: https://github.com/ros-controls/control_msgs/tree/foxy-devel 
+Or manullay by cloning repository: https://github.com/ros-controls/control_msgs/tree/foxy-devel 
 
-)
 ## Usage
 Launch the adaptive_guide_launch.py file
 ```bash
