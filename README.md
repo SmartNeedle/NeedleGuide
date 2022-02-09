@@ -81,6 +81,3 @@ The following topics can be published to in order to change the pose of the virt
 The following topics can be subscribed to in order to monitor the insertion depth and rotation of the virtual needle.
  - */virtual_stage/joint_states/y*: A std_msgs/msg/Float64 topic for the insertion depth of the y (insertion) position of the needle in meters.
  - */virtual_stage/joint_states/theta*: A std_msgs/msg/Float64 topic for the rotation of the needle about the y-axis in radians.
-
-## TODO
- - Implement virtual sensors (Linear Potentiometer, axial orientation of the needle)
