@@ -9,7 +9,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package="needle_pose_sensors",
-            executable="emulate_sensors_node",
+            executable="sensors_node",
             name="needle_pose_sensors_node",
             output="screen"
         )

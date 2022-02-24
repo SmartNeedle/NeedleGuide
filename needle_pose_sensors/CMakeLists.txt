@@ -21,8 +21,8 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(emulate_sensors_node src/emulate_sensors_node.cpp)
-ament_target_dependencies(emulate_sensors_node rclcpp std_msgs geometry_msgs)
+add_executable(sensors_node src/sensors_node.cpp)
+ament_target_dependencies(sensors_node rclcpp std_msgs geometry_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -36,7 +36,7 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS
-    emulate_sensors_node
+    sensors_node
     DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
