@@ -16,6 +16,7 @@
 #include "trajectory_msgs/msg/joint_trajectory.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "stage_control_interfaces/srv/controller_command.hpp"
+#include "std_msgs/msg/string.hpp"
 
 using namespace std::chrono_literals;
 
@@ -27,7 +28,7 @@ public:
     using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
     using ControllerCommand = stage_control_interfaces::srv::ControllerCommand;
 
-    explicit VirtualStageNode() : Node("virtual_stage_node")
+    explicit VirtualStageNode() : Node("virtual_stage_node"), depth_(0), rotation_(0)
     {
 
         RCLCPP_INFO(this->get_logger(), "Initializing virtual stage...");
@@ -126,6 +127,13 @@ public:
                     std::bind(&VirtualStageNode::send_command, this, std::placeholders::_1, std::placeholders::_2));
         
         RCLCPP_INFO(this->get_logger(), "Ready.");
+        
+        // Simulation Needle depth and rotation publisher
+        yAndTheta_simulated_publisher = this->create_publisher<std_msgs::msg::String>("yAndThetaArduinoValues", 10);
+        timersensors_ = this->create_wall_timer(
+            50ms, std::bind(&VirtualStageNode::yAndTheta_simulated_pub_callback, this));
+            
+        RCLCPP_INFO(this->get_logger(), "Simulated sensors ready.");
     }
 
 private:
@@ -133,6 +141,7 @@ private:
     rclcpp::Publisher<Float64>::SharedPtr y_publisher;
     rclcpp::Publisher<Float64>::SharedPtr z_publisher;
     rclcpp::Publisher<Float64>::SharedPtr theta_publisher;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr yAndTheta_simulated_publisher;
     rclcpp::Subscription<Float64>::SharedPtr x_subscriber;
     rclcpp::Subscription<Float64>::SharedPtr y_subscriber;
     rclcpp::Subscription<Float64>::SharedPtr z_subscriber;
@@ -142,6 +151,7 @@ private:
     rclcpp::Subscription<Float64>::SharedPtr rotation_velocity_subscriber;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_states_subscriber;
     rclcpp::TimerBase::SharedPtr timer;
+    rclcpp::TimerBase::SharedPtr timersensors_;
     rclcpp_action::Client<FollowJointTrajectory>::SharedPtr joint1_client;
     rclcpp_action::Client<FollowJointTrajectory>::SharedPtr joint2_client;
     rclcpp_action::Client<FollowJointTrajectory>::SharedPtr joint3_client;
@@ -164,6 +174,8 @@ private:
     double insertion_velocity = 0.005;
     double rotation_velocity = 0.7;
     double target_time;
+    size_t depth_;
+    size_t rotation_;
 
     void x_command_callback(const std_msgs::msg::Float64::SharedPtr msg)
     {
@@ -304,6 +316,14 @@ private:
         goal_msg.trajectory.points = points;
 
         auto goal_handle_future = client->async_send_goal(goal_msg, opt);
+    }
+    
+     void yAndTheta_simulated_pub_callback()
+    {
+    	auto message = std_msgs::msg::String();
+    	message.data = std::to_string(depth_++) + ";" + std::to_string(rotation_++);
+    	yAndTheta_simulated_publisher->publish(message);  
+    	RCLCPP_INFO(this->get_logger(), "Sending simulated values");
     }
 
 }; // class StageVirtualNode
