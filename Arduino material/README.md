@@ -4,7 +4,7 @@ This subfolder contains all information to install the Arduino board and sensors
 
 ## Hardware Installation
 
-Please follow the circuit diagram provided as a picture in this folder. 
+Please follow the [circuit diagram](https://github.com/SmartNeedle/ros2_needle_guide_robot/blob/main/Arduino%20material/SensorsCircuitDiagram.png) provided.
 
 Necessary material:
 - Arduino Uno board with a USB cable
@@ -16,13 +16,13 @@ Necessary material:
 
 ## Software Installation 
 
-Please install the Arduino IDE and load the sketch ReadCUIRotaryEncoderAndSoftPotentiometer.ino provided in the Arduino code folder. 
+Please install the [Arduino IDE](https://www.arduino.cc/en/Guide) and load the sketch [ReadCUIRotaryEncoderAndSoftPotentiometer.ino](https://github.com/SmartNeedle/ros2_needle_guide_robot/blob/main/Arduino%20material/Arduino%20code/ReadCUIRotaryEncoderAndSoftPotentiometer.ino) provided in the Arduino code folder. 
 
-Then, add the rosserial library using the Arduino software menu: Sketch --> Include Library --> Manage Libraries. Look for the Rosserial Arduino Library and install version 0.9.1. Please close and restart the software before going to next step. 
+Then, add the [rosserial library](http://wiki.ros.org/rosserial_arduino/Tutorials/Arduino%20IDE%20Setup) using the Arduino software menu: Sketch --> Include Library --> Manage Libraries. Look for the Rosserial Arduino Library and install version 0.9.1. Please close and restart the software before going to next step. 
 
-You also need to have ROS installed on your computer (It has been tested with ROS noetic only.)
+You also need to have [ROS](http://wiki.ros.org/noetic/Installation) installed on your computer (It has been tested with ROS noetic only.)
 
-Please also install the ros1_bridge.
+Please also install the [ros1_bridge](https://github.com/ros2/ros1_bridge).
 
 ## Usage 
 
@@ -55,4 +55,3 @@ ros2 launch adaptive_guide adaptive_guide_launch.py sim_level:=2
 ```
 
 You should see the values measured by the sensors published to ROS2 nodes. 
-
