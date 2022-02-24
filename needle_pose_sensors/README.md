@@ -1,4 +1,2 @@
 # Needle Pose Sensors
-Package containing emulated and virtual sensors for the needle's depth and rotation.\
-
-Still need to implement IMU and Depth sensor in Gazebo.
+Package containing simulated sensors and Arduino code and documentation to get real values of the sensors for the the needle's depth and rotation.\
