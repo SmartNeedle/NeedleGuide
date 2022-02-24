@@ -55,4 +55,3 @@ ros2 launch adaptive_guide adaptive_guide_launch.py sim_level:=2
 ```
 
 You should see the values measured by the sensors published to ROS2 nodes. 
-
