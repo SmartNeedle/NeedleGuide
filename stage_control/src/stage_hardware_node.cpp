@@ -476,7 +476,7 @@ private:
         auto z = std_msgs::msg::Float64();
 
         // Query x position
-        strcpy(out, "PX"); //move the motor
+        strcpy(out, "PX"); 
         if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
         {
             RCLCPP_ERROR(this->get_logger(), "Could not send\n");
@@ -484,7 +484,7 @@ private:
         x.data = pulses_to_m(atof(in));
 
         // Query z position
-        strcpy(out, "PY"); //move the motor
+        strcpy(out, "PY"); 
         if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
         {
             RCLCPP_ERROR(this->get_logger(), "Could not send\n");

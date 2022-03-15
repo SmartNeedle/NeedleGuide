@@ -55,8 +55,8 @@ private:
 
     void stage_pose_callback(const PoseStamped::SharedPtr msg) 
     {
-        position.set__x(msg->pose.position.x);
-        position.set__z(msg->pose.position.z);
+        position.set__x((msg->pose.position.x)*1000);
+        position.set__z((msg->pose.position.z)*1000);
     }
 
     void needle_pose_callback(const PoseStamped::SharedPtr msg)
