@@ -28,7 +28,7 @@ public:
     using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
     using ControllerCommand = stage_control_interfaces::srv::ControllerCommand;
 
-    explicit VirtualStageNode() : Node("virtual_stage_node"), depth_(0), rotation_(0)
+    explicit VirtualStageNode() : Node("virtual_stage_node"), depth_(0), rotation_(0), iteration(0)
     {
 
         RCLCPP_INFO(this->get_logger(), "Initializing virtual stage...");
@@ -176,12 +176,14 @@ private:
     double target_time;
     size_t depth_;
     size_t rotation_;
-
+    size_t iteration;
+    
     void x_command_callback(const std_msgs::msg::Float64::SharedPtr msg)
     {
         target_x = msg->data + zero_x;
 
         double time = abs(target_x - current_x) / target_velocity;
+        RCLCPP_INFO(this->get_logger(), "Publishing timestamp END %d value", iteration++);
         MoveJoint(joint1_client, "joint1", target_x, time);
     }
 
@@ -323,7 +325,7 @@ private:
     	auto message = std_msgs::msg::String();
     	message.data = std::to_string(depth_++) + ";" + std::to_string(rotation_++);
     	yAndTheta_simulated_publisher->publish(message);  
-    	RCLCPP_INFO(this->get_logger(), "Sending simulated values");
+    	//RCLCPP_INFO(this->get_logger(), "Sending simulated values");
     }
 
 }; // class StageVirtualNode

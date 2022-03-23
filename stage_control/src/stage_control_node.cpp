@@ -10,7 +10,7 @@
 #include "rclcpp_components/register_node_macro.hpp"
 #include "std_msgs/msg/float64.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-
+#include "geometry_msgs/msg/pose2_d.hpp"
 #include "control_msgs/action/follow_joint_trajectory.hpp"
 //#include "stage_control/visibility_control.h"
 
@@ -25,10 +25,11 @@ namespace stage_control
         using GoalHandleMoveStage = rclcpp_action::ServerGoalHandle<MoveStage>;
         using Float64 = std_msgs::msg::Float64;
         using ControllerCommand = stage_control_interfaces::srv::ControllerCommand;
-
+        using Pose2D = geometry_msgs::msg::Pose2D;
+	
         //STAGE_CONTROL_PUBLIC
         explicit StageControlNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
-            : Node("move_stage_node", options)
+            : Node("move_stage_node", options), iterationn(0)
         {
             using namespace std::placeholders;
 
@@ -67,8 +68,9 @@ namespace stage_control
             {
                 joint_topic_x = "stage/joint_states/x";
                 joint_topic_z = "stage/joint_states/z";
-                hardware_x_publisher = this->create_publisher<Float64>("stage/x_position_controller/command", 10);
-                hardware_z_publisher = this->create_publisher<Float64>("stage/z_position_controller/command", 10);
+                //hardware_x_publisher = this->create_publisher<Float64>("stage/x_position_controller/command", 10);
+                //hardware_z_publisher = this->create_publisher<Float64>("stage/z_position_controller/command", 10);
+                hardware_xz_publisher = this->create_publisher<Pose2D>("stage/xz_position_controller/command", 10);
                 hardware_vel_publisher = this->create_publisher<Float64>("stage/velocity", 1);
                 stage_command_client = this->create_client<ControllerCommand>("stage/controller/command");
             }
@@ -80,8 +82,9 @@ namespace stage_control
                 virtual_z_publisher = this->create_publisher<Float64>("virtual_stage/z_position_controller/command", 10);
                 virtual_vel_publisher = this->create_publisher<Float64>("virtual_stage/velocity", 1);
                 virtual_stage_command_client = this->create_client<ControllerCommand>("virtual_stage/controller/command");
-                hardware_x_publisher = this->create_publisher<Float64>("stage/x_position_controller/command", 10);
-                hardware_z_publisher = this->create_publisher<Float64>("stage/z_position_controller/command", 10);
+                //hardware_x_publisher = this->create_publisher<Float64>("stage/x_position_controller/command", 10);
+                //hardware_z_publisher = this->create_publisher<Float64>("stage/z_position_controller/command", 10);
+                hardware_xz_publisher = this->create_publisher<Pose2D>("stage/xz_position_controller/command", 10);
                 hardware_vel_publisher = this->create_publisher<Float64>("stage/velocity", 1);
                 stage_command_client = this->create_client<ControllerCommand>("stage/controller/command");
             }
@@ -130,8 +133,9 @@ namespace stage_control
         rclcpp::Subscription<Float64>::SharedPtr x_subscriber;
         rclcpp::Subscription<Float64>::SharedPtr z_subscriber;
         rclcpp::Subscription<Float64>::SharedPtr velocity_subscriber;
-        rclcpp::Publisher<Float64>::SharedPtr hardware_x_publisher;
-        rclcpp::Publisher<Float64>::SharedPtr hardware_z_publisher;
+        //rclcpp::Publisher<Float64>::SharedPtr hardware_x_publisher;
+        //rclcpp::Publisher<Float64>::SharedPtr hardware_z_publisher;
+        rclcpp::Publisher<Pose2D>::SharedPtr hardware_xz_publisher;
         rclcpp::Publisher<Float64>::SharedPtr hardware_vel_publisher;
         rclcpp::Client<ControllerCommand>::SharedPtr stage_command_client;
         rclcpp::Publisher<Float64>::SharedPtr virtual_x_publisher;
@@ -149,6 +153,7 @@ namespace stage_control
         double vel_comp;
         double delay = 0.001;
         int sim_level;
+        size_t iterationn;
 
         void send_command(const std::shared_ptr<ControllerCommand::Request> request,
                           std::shared_ptr<ControllerCommand::Response> response)
@@ -205,7 +210,8 @@ namespace stage_control
 
             message.pose.set__position(position);
             message.header.set__stamp(this->get_clock()->now());
-
+            
+	    //RCLCPP_INFO(this->get_logger(), "Publishing timestamp BEG %d", iterationn++);
             this->pose_publisher_->publish(message);
         }
 
@@ -320,14 +326,17 @@ namespace stage_control
             RCLCPP_INFO(this->get_logger(), "Moving stage hardware from (%f, %f) to (%f, %f)",
                         this->current_x, this->current_z, x, z);
 
-            auto x_command = Float64();
-            auto z_command = Float64();
+            //auto x_command = Float64();
+            //auto z_command = Float64();
+	    auto xz_command = Pose2D();
+	    xz_command.x = x;
+	    xz_command.y = z;
+            //x_command.data = x;
+            //z_command.data = z;
 
-            x_command.data = x;
-            z_command.data = z;
-
-            this->hardware_x_publisher->publish(x_command);
-            this->hardware_z_publisher->publish(z_command);
+            //this->hardware_x_publisher->publish(x_command);
+            //this->hardware_z_publisher->publish(z_command);
+            this->hardware_xz_publisher->publish(xz_command);
         }
 
         void MoveVirtualStage(double x, double z)

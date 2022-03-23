@@ -6,6 +6,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "stage_control_interfaces/srv/controller_command.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "geometry_msgs/msg/pose2_d.hpp"
+#include <inttypes.h>
 
 // Motorized Stage API /////////////////////////////////////
 #pragma region ARCUSPERFORMAX
@@ -353,7 +355,9 @@ using namespace std::chrono_literals;
 class Stage : public rclcpp::Node
 {
 public:
-    explicit Stage() : Node("stage_hardware_node")
+    using Pose2D = geometry_msgs::msg::Pose2D;
+    
+    explicit Stage() : Node("stage_hardware_node"), iteration(0)
     {
         RCLCPP_INFO(this->get_logger(), "Initializing...");
         if (!intialize())
@@ -385,6 +389,11 @@ public:
             std::bind(&Stage::velocity_callback, this, std::placeholders::_1));
 
         // Start stage position command subscribers
+        xz_subscriber = this->create_subscription<Pose2D>(
+            "stage/xz_position_controller/command",
+            10,
+            std::bind(&Stage::xz_command_callback, this, std::placeholders::_1));
+        /*
         x_subscriber = this->create_subscription<std_msgs::msg::Float64>(
             "stage/x_position_controller/command",
             10,
@@ -393,7 +402,7 @@ public:
         z_subscriber = this->create_subscription<std_msgs::msg::Float64>(
             "stage/z_position_controller/command",
             10,
-            std::bind(&Stage::z_command_callback, this, std::placeholders::_1));
+            std::bind(&Stage::z_command_callback, this, std::placeholders::_1));*/
 
         //run();
         RCLCPP_INFO(this->get_logger(), "Ready.");
@@ -407,8 +416,9 @@ public:
 private:
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr x_publisher;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr z_publisher;
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr x_subscriber;
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr z_subscriber;
+    //rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr x_subscriber;
+    //rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr z_subscriber;
+    rclcpp::Subscription<Pose2D>::SharedPtr xz_subscriber; 
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_subscriber;
     rclcpp::Service<ControllerCommand>::SharedPtr service;
     rclcpp::TimerBase::SharedPtr timer;
@@ -417,7 +427,10 @@ private:
     char in[64];
     bool homed = false;
     double target_velocity = 0.001;
-
+    size_t iteration;
+    //rclcpp::Time timestamp_beg;
+    rclcpp::Time timestamp_end;
+    
     void set_velocity(float vel)
     {
         std::string s = "HSPD=" + std::to_string(m_to_pulses(vel));
@@ -434,25 +447,59 @@ private:
         set_velocity(msg->data);
     }
 
-    void x_command_callback(const std_msgs::msg::Float64::SharedPtr msg)
+    void xz_command_callback(const Pose2D::SharedPtr msg)
     {
-        std::string s = "";
+	timestamp_end = this->get_clock()->now();
+	RCLCPP_INFO(this->get_logger(), "Publishing timestamp END %d value is: %lu", iteration++, timestamp_end);
+        //fnPerformaxComFlush(Handle);
+        std::string sx = "";
+        std::string sy = "";
         if (is_moving())
-        {
-            s = "TX" + std::to_string(m_to_pulses(msg->data));
+        { 
+            sx = "TX"+ std::to_string(m_to_pulses(msg->x));
+            sy = "TY"+ std::to_string(-1*m_to_pulses(msg->y));
         }
         else
         {
-            s = "X" + std::to_string(m_to_pulses(msg->data));
+            sx = "X"+ std::to_string(m_to_pulses(msg->x));
+            sy = "Y" + std::to_string(-1*m_to_pulses(msg->y));
+        }
+        strcpy(out, sx.c_str());
+        if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
+        {
+            RCLCPP_ERROR(this->get_logger(), "Could not send\n");
+        }
+        
+        strcpy(out, sy.c_str());
+        if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
+        {
+            RCLCPP_ERROR(this->get_logger(), "Could not send\n");
+        }
+        
+        /*
+        //std::string s = "";
+        if (is_moving())
+        {
+            s = "TY" + std::to_string(-1*m_to_pulses(msg->data));
+        }
+        else
+        {
+            s = "Y" + std::to_string(-1*m_to_pulses(msg->data));
         }
         strcpy(out, s.c_str());
         if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
         {
             RCLCPP_ERROR(this->get_logger(), "Could not send\n");
-        }
+        }*/
+        
+        /*rclcpp::Rate rate(10);
+        while (is_moving())
+        {
+            rate.sleep();
+        }*/
     }
 
-    void z_command_callback(const std_msgs::msg::Float64::SharedPtr msg)
+    /*void z_command_callback(const std_msgs::msg::Float64::SharedPtr msg)
     {
         std::string s = "";
         if (is_moving())
@@ -468,7 +515,7 @@ private:
         {
             RCLCPP_ERROR(this->get_logger(), "Could not send\n");
         }
-    }
+    }*/
 
     void publish_state()
     {
@@ -492,7 +539,11 @@ private:
         z.data = -1*pulses_to_m(atof(in));
 
         // Publish
+        //float timestamp_beg = this->now().seconds();
+        //timestamp_beg = this->get_clock()->now();
+        //RCLCPP_INFO(this->get_logger(), "Publishing timestamp BEG %d value is: %lu", iteration++, timestamp_beg);
         x_publisher->publish(x);
+        
         z_publisher->publish(z);
     }
 
@@ -654,14 +705,14 @@ private:
     {
         RCLCPP_INFO(this->get_logger(), "Initializing homing sequence...");
 
-        strcpy(out, "HLX+");
+        strcpy(out, "HX+");
         if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
         {
             RCLCPP_ERROR(this->get_logger(), "Could not send\n");
             return false;
         }
 
-        strcpy(out, "HLY-");
+        strcpy(out, "HY-");
         if (!fnPerformaxComSendRecv(Handle, out, 64, 64, in))
         {
             RCLCPP_ERROR(this->get_logger(), "Could not send\n");

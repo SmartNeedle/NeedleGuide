@@ -55,7 +55,7 @@ private:
     
     void arduinoValues_callback(const std_msgs::msg::String::SharedPtr msg) 
     {
-        RCLCPP_INFO(this->get_logger(), "I heard in ROS2: '%s'", msg->data.c_str());
+        //RCLCPP_INFO(this->get_logger(), "I heard in ROS2: '%s'", msg->data.c_str());
         
         auto message = PoseStamped();
         auto position = geometry_msgs::msg::Point();
@@ -65,7 +65,7 @@ private:
 	std::string yAndTheta;
 	
 	yAndTheta = msg->data.c_str();
-        std::cout << yAndTheta << std::endl;
+        //std::cout << yAndTheta << std::endl;
 	
     	// Retrieve depth and rotation separated by a semicolon
     	size_t pos = yAndTheta.rfind(";"); 
